@@ -43,7 +43,7 @@ import { FaCalendarWeek } from 'react-icons/fa6';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 const Header = () => {
-    if (!getUser()) redirect('/auth/login');
+    // if (!getUser()) redirect('/auth/login');
 
     const pathname = usePathname();
     const dispatch = useDispatch();

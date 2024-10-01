@@ -25,7 +25,7 @@ axiosInstance.interceptors.request.use(
                 } else {
                     sessionStorage.removeItem('user');
                 }
-                window.location.href = '/auth/login';
+                // window.location.href = '/auth/login';
                 return config;
             } else {
                 const response = await axios.post(`${BASE_URL}/api/auth/access-token`, {

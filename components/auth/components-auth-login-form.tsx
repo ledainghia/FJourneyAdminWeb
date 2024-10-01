@@ -1,23 +1,19 @@
 'use client';
 
-import IconLockDots from '@/components/icon/icon-lock-dots';
 import IconMail from '@/components/icon/icon-mail';
-import { redirect, useRouter } from 'next/navigation';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { FaRegEye, FaRegEyeSlash } from 'react-icons/fa6';
 import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '../ui/form';
-import { Bounce, toast } from 'react-toastify';
-import { Input } from '../ui/input';
-import { userLogin } from '@/datatype/userType';
 import { authAPI } from '@/config/axios/axios';
-import { set } from 'lodash';
-import { Button } from '../ui/button';
+import { userLogin } from '@/datatype/userType';
 import { Loader2 } from 'lucide-react';
-import { getUser } from '@/helper/checkuser';
+import { Bounce, toast } from 'react-toastify';
+import { Button } from '../ui/button';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
+import { Input } from '../ui/input';
 
 const FormSchema = z.object({
     username: z.string().min(2, {
@@ -83,7 +79,6 @@ const ComponentsAuthLoginForm = () => {
             })
             .catch((err) => {
                 console.log(err);
-                console.table(data);
                 toast.error(err.response.data.result.message, {
                     position: 'top-right',
                     autoClose: 5000,
