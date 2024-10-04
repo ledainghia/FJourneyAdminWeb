@@ -381,7 +381,7 @@ const Campaigns = () => {
                         </div>
                     </div>
                 </div>
-                <DataTableCustom rowData={rowData} columns={columns} search={search} setSearch={setSearch} />
+                {/* <DataTableCustom rowData={rowData} columns={columns} search={search} setSearch={setSearch} /> */}
             </div>
         </div>
     );
