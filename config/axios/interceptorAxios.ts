@@ -3,7 +3,7 @@ import { getUser } from '@/helper/checkuser';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 
-const BASE_URL = 'https://api.flocalbrand.site';
+const BASE_URL = 'https://api.fjourney.site';
 
 const axiosInstance = axios.create({
     baseURL: BASE_URL,

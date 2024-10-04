@@ -1,6 +1,7 @@
 'use client';
 import DataTableCustom from '@/components/datatables/data-table';
 import Loading from '@/components/layouts/loading';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
@@ -24,6 +25,8 @@ import Swal from 'sweetalert2';
 
 const Users = () => {
     const [columns, setColumns] = useState<DataTableColumn<any>[]>([]);
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
     const [search, setSearch] = useState('');
     const [users, setUsers] = useState([]);
     const queryClient = useQueryClient();
@@ -36,9 +39,20 @@ const Users = () => {
     const [password, setPassword] = useState('');
 
     const { data, error, isLoading } = useQuery({
-        queryKey: ['users'],
-        queryFn: managementAPI.getUsers,
+        queryKey: ['usersList'],
+        queryFn: () => managementAPI.getUsers({ page, pageSize }),
     });
+
+    const onPageSizeChange = (size: number) => {
+        queryClient.invalidateQueries({ queryKey: ['usersList'] });
+        setPageSize(size);
+    };
+
+    const onPageChange = (page: number) => {
+        // queryClient.invalidateQueries({ queryKey: ['usersList'] });
+        console.log('page', page);
+        setPage(page);
+    };
 
     const showAlert = async (userID: string, action: string, userName: string) => {
         const swalWithBootstrapButtons = Swal.mixin({
@@ -98,30 +112,44 @@ const Users = () => {
         } else {
             const collumnsConfig: DataTableColumn<any>[] = [
                 { accessor: 'id', title: 'ID', sortable: true },
-                { accessor: 'userName', title: 'Username', sortable: true },
-                { accessor: 'email', title: 'Email', sortable: true },
-                { accessor: 'phone', title: 'Phone', sortable: true },
-                { accessor: 'address', title: 'Address', sortable: true },
                 {
-                    accessor: 'roleName',
-                    title: 'Role Name',
-                    sortable: true,
+                    accessor: 'profileImageUrl',
+                    title: 'Profile Image',
+                    sortable: false,
                     render: (value) => {
                         return (
-                            <Badge variant={'outline'} className="rounded-sm">
-                                {value.roleName === 'Admin' ? <GrUserAdmin className="mr-2" /> : <MdOutlineDeliveryDining className="mr-2 size-4" />} {value.roleName}
+                            <Avatar className="rounded-md">
+                                <AvatarImage src={value.profileImageUrl} alt="@shadcn" />
+                                <AvatarFallback>{value.name}</AvatarFallback>
+                            </Avatar>
+                        );
+                    },
+                },
+                { accessor: 'name', title: 'Name', sortable: true },
+                { accessor: 'email', title: 'Email', sortable: true },
+                { accessor: 'phoneNumber', title: 'Phone', sortable: true },
+                { accessor: 'studentId', title: 'Student ID', sortable: true },
+                {
+                    accessor: 'role',
+                    title: 'Role Name',
+                    sortable: true,
+
+                    render: (value) => {
+                        return (
+                            <Badge variant={'outline'} className={`rounded-sm ${value.role === 'Passenger' ? 'A' : 'b'}`}>
+                                {value.role === 'Passenger' ? <GrUserAdmin className="mr-2" /> : <MdOutlineDeliveryDining className="mr-2 size-4 " />} {value.role}
                             </Badge>
                         );
                     },
                 },
                 {
-                    accessor: 'status',
-                    title: 'Status',
+                    accessor: 'verified',
+                    title: 'Verified',
                     sortable: true,
                     render: (value) => {
                         return (
-                            <Badge variant={'outline'} className={cn('rounded', { 'bg-red-400 text-white': value.status !== 'Active', 'bg-orange-500 text-white': value.status === 'Active' })}>
-                                {value.status}
+                            <Badge variant={'outline'} className={cn('rounded', { 'bg-red-400 text-white': value.verified !== true, 'bg-orange-500 text-white': value.status === true })}>
+                                {value.verified ? 'True' : 'False'}
                             </Badge>
                         );
                     },
@@ -158,7 +186,7 @@ const Users = () => {
                 },
             ];
             setColumns(collumnsConfig);
-            setUsers(data?.data.result.users || []);
+            setUsers(data?.data.result.data || []);
         }
     }, [data]);
 
@@ -188,13 +216,13 @@ const Users = () => {
         },
     });
 
-    if (isLoading) {
-        return (
-            <div>
-                <Loading></Loading>
-            </div>
-        );
-    }
+    // if (isLoading) {
+    //     return (
+    //         <div>
+    //             <Loading></Loading>
+    //         </div>
+    //     );
+    // }
 
     return (
         <div>
@@ -308,7 +336,18 @@ const Users = () => {
                         </DialogContent>
                     </Dialog>
                 </div>
-                <DataTableCustom rowData={users} columns={columns} search={search} setSearch={setSearch} />
+                <DataTableCustom
+                    rowData={users}
+                    columns={columns}
+                    search={search}
+                    setSearch={setSearch}
+                    onPageChange={onPageChange}
+                    onPageSizeChange={onPageSizeChange}
+                    page={page}
+                    setPage={setPage}
+                    pageSize={pageSize}
+                    totalRecords={data?.data.result.totalItems}
+                />
             </div>
         </div>
     );

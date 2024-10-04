@@ -5,7 +5,7 @@ import axiosInstance from './interceptorAxios';
 import { Product } from '@/datatype/productType';
 import { add } from 'lodash';
 
-const baseUrl = 'https://api.flocalbrand.site';
+const baseUrl = 'https://api.fjourney.site';
 
 export const authAPI = {
     login: async (user: userLogin) => {
@@ -15,7 +15,7 @@ export const authAPI = {
 
 export const userAPI = {
     getUser: async () => {
-        return await axiosInstance.get(`/api/auth/user-info`);
+        return await axios.get(`${baseUrl}/api/auth/user-info`);
     },
     updateDeviceToken: async (token: string) => {
         return await axiosInstance.put(`/api/user/update/deviceid/${token}`);
@@ -25,10 +25,17 @@ export const userAPI = {
     },
 };
 
+type pagination = {
+    page: number;
+    pageSize: number;
+};
+
 export const managementAPI = {
-    getUsers: async () => {
-        return await axiosInstance.get(`/api/user/users`);
+    getUsers: async ({ page, pageSize }: pagination) => {
+        console.log(page, pageSize);
+        return await axios.get(`${baseUrl}/api/users?Page=${page}&PageSize=${pageSize}`);
     },
+
     changeStatusUser: async (id: string, status: string) => {
         return await axiosInstance.put(`/api/user/status`, {
             userId: id,

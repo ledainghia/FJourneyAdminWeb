@@ -6,14 +6,19 @@ interface DataTableCustomProps {
     rowData: any;
     columns: any;
     search: string;
+
     setSearch: (value: string) => void;
+    totalRecords: number;
+    onPageSizeChange: (size: number) => void;
+    onPageChange: (page: number) => void;
+    pageSize: number;
+    page: number;
+
+    setPage: (page: number) => void;
 }
 
-const DataTableCustom: React.FC<DataTableCustomProps> = ({ rowData, columns, search, setSearch }) => {
-    const [page, setPage] = useState(1);
+const DataTableCustom: React.FC<DataTableCustomProps> = ({ rowData, columns, search, setSearch, onPageChange, onPageSizeChange, page, setPage, pageSize, totalRecords }) => {
     const PAGE_SIZES = [10, 20, 30, 50, 100];
-    const [pageSize, setPageSize] = useState(PAGE_SIZES[0]);
-
     const [initialRecords, setInitialRecords] = useState(sortBy(rowData, 'id'));
     const [dataFilter, setDataFilter] = useState(initialRecords);
 
@@ -66,12 +71,12 @@ const DataTableCustom: React.FC<DataTableCustomProps> = ({ rowData, columns, sea
                 className="table-hover whitespace-nowrap"
                 records={dataFilter}
                 columns={columns}
-                totalRecords={initialRecords.length}
+                totalRecords={totalRecords}
                 recordsPerPage={pageSize}
                 page={page}
-                onPageChange={(p) => setPage(p)}
+                onPageChange={(p) => onPageChange(p)}
                 recordsPerPageOptions={PAGE_SIZES}
-                onRecordsPerPageChange={setPageSize}
+                onRecordsPerPageChange={(p) => onPageSizeChange(p)}
                 sortStatus={sortStatus}
                 onSortStatusChange={setSortStatus}
                 minHeight={200}
