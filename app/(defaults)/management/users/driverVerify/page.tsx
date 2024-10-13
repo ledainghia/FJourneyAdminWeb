@@ -19,7 +19,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
 import { set } from 'lodash';
 import { DataTableColumn } from 'mantine-datatable';
-import { use, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FaCheck, FaUserCheck, FaUserTimes } from 'react-icons/fa';
 import { FaHandMiddleFinger, FaInfo, FaMotorcycle } from 'react-icons/fa6';
 import { GrUserAdmin } from 'react-icons/gr';
@@ -142,7 +142,7 @@ const DriverVerifyDetail = () => {
             queryClient.invalidateQueries({ queryKey: ['users'] });
             toast.success('Collection added successfully');
         },
-        onError: (error) => {
+        onError: (error: { message: any }) => {
             toast.error(error.message || 'Error change role for user!');
         },
     });
@@ -315,7 +315,7 @@ const DriverVerifyDetail = () => {
                                 <div className="w-full rounded-lg bg-white p-4 shadow-md">
                                     <div className="flex items-center gap-4">
                                         <div>
-                                            <img src={selectedUser.ProfileImageUrl} className="h-32 w-32 rounded-full object-cover" alt={selectedUser.Name} />
+                                            <img src={selectedUser.ProfileImageUrl} className="h-24 w-24 rounded-full object-cover" alt={selectedUser.Name} />
                                         </div>
 
                                         <div>
@@ -324,7 +324,7 @@ const DriverVerifyDetail = () => {
                                                 <Badge variant={'outline'} className=" rounded-md">
                                                     {selectedUser.UserId}
                                                 </Badge>
-                                                <Badge variant={'outline'} className="ml-3 rounded-md">
+                                                <Badge variant={'outline'} className="ml-1 rounded-md">
                                                     {selectedUser.Role}
                                                 </Badge>
                                             </div>

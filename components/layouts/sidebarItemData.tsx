@@ -39,7 +39,16 @@ export const sidebarItemData: sidebarItem[] = [
             {
                 title: 'Users',
                 icon: <IconMenuUsers className={classNamesForIconSidebar} />,
-                path: '/management/users',
+                subMenu: [
+                    {
+                        title: 'User List',
+                        path: '/management/users',
+                    },
+                    {
+                        title: 'Verify Driver',
+                        path: '/management/users/driverVerify',
+                    },
+                ],
             },
             {
                 title: 'Customers',

@@ -1,6 +1,5 @@
 'use client';
 import DataTableCustom from '@/components/datatables/data-table';
-import Loading from '@/components/layouts/loading';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
@@ -12,9 +11,8 @@ import { cn } from '@/lib/utils';
 import { Input } from '@mantine/core';
 import { Label } from '@radix-ui/react-label';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { set } from 'lodash';
 import { DataTableColumn } from 'mantine-datatable';
-import { use, useEffect, useState } from 'react';
+import { SetStateAction, useEffect, useState } from 'react';
 import { FaUserCheck, FaUserTimes } from 'react-icons/fa';
 import { GrUserAdmin } from 'react-icons/gr';
 import { IoAddCircleOutline } from 'react-icons/io5';
@@ -40,19 +38,24 @@ const Users = () => {
 
     const { data, error, isLoading } = useQuery({
         queryKey: ['usersList'],
-        queryFn: () => managementAPI.getUsers({ page, pageSize }),
+        queryFn: () => {
+            console.table({ page, pageSize, isLoading });
+            return managementAPI.getUsers({ page, pageSize });
+        },
     });
 
     const onPageSizeChange = (size: number) => {
-        queryClient.invalidateQueries({ queryKey: ['usersList'] });
         setPageSize(size);
     };
 
     const onPageChange = (page: number) => {
-        // queryClient.invalidateQueries({ queryKey: ['usersList'] });
         console.log('page', page);
         setPage(page);
     };
+
+    useEffect(() => {
+        queryClient.invalidateQueries({ queryKey: ['usersList'] });
+    }, [page, pageSize]);
 
     const showAlert = async (userID: string, action: string, userName: string) => {
         const swalWithBootstrapButtons = Swal.mixin({
@@ -211,7 +214,7 @@ const Users = () => {
             queryClient.invalidateQueries({ queryKey: ['users'] });
             toast.success('User added successfully');
         },
-        onError: (error) => {
+        onError: (error: { message: any }) => {
             toast.error(error.message || 'Error adding user!');
         },
     });
@@ -263,25 +266,31 @@ const Users = () => {
                                     <Label htmlFor="name" className="text-right">
                                         Username
                                     </Label>
-                                    <Input value={userName} onChange={(e) => setUserName(e.target.value)} id="name" className="col-span-3" />
+                                    <Input value={userName} onChange={(e: { target: { value: SetStateAction<string> } }) => setUserName(e.target.value)} id="name" className="col-span-3" />
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
                                     <Label htmlFor="Password" className="text-right">
                                         Password
                                     </Label>
-                                    <Input value={password} onChange={(e) => setPassword(e.target.value)} id="Password" type="password" className="col-span-3" />
+                                    <Input
+                                        value={password}
+                                        onChange={(e: { target: { value: SetStateAction<string> } }) => setPassword(e.target.value)}
+                                        id="Password"
+                                        type="password"
+                                        className="col-span-3"
+                                    />
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
                                     <Label htmlFor="Email" className="text-right">
                                         Email
                                     </Label>
-                                    <Input value={email} onChange={(e) => setEmail(e.target.value)} id="Email" className="col-span-3" />
+                                    <Input value={email} onChange={(e: { target: { value: SetStateAction<string> } }) => setEmail(e.target.value)} id="Email" className="col-span-3" />
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
                                     <Label htmlFor="Phone" className="text-right">
                                         Phone
                                     </Label>
-                                    <Input value={phone} onChange={(e) => setPhone(e.target.value)} id="Phone" className="col-span-3" />
+                                    <Input value={phone} onChange={(e: { target: { value: SetStateAction<string> } }) => setPhone(e.target.value)} id="Phone" className="col-span-3" />
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
                                     <Label htmlFor="Address" className="text-right">
@@ -289,7 +298,7 @@ const Users = () => {
                                     </Label>
                                     <Input
                                         value={address}
-                                        onChange={(e) => {
+                                        onChange={(e: { target: { value: SetStateAction<string> } }) => {
                                             setAddress(e.target.value);
                                         }}
                                         id="Address"
@@ -337,7 +346,8 @@ const Users = () => {
                     </Dialog>
                 </div>
                 <DataTableCustom
-                    rowData={users}
+                    rowData={data?.data.result.data}
+                    isFetching={isLoading}
                     columns={columns}
                     search={search}
                     setSearch={setSearch}
