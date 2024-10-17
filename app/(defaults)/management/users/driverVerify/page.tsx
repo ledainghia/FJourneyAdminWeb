@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+import Select from 'react-select';
 import { managementAPI } from '@/config/axios/axios';
 import { User } from '@/datatype/usersType';
 import { cn } from '@/lib/utils';
@@ -29,6 +30,7 @@ import { RiExchange2Line } from 'react-icons/ri';
 import { toast } from 'react-toastify';
 import { TbLicense } from 'react-icons/tb';
 import Swal from 'sweetalert2';
+import errorCodes from '@/data/errorCode';
 
 const DriverVerifyDetail = () => {
     const [columns, setColumns] = useState<DataTableColumn<any>[]>([]);
@@ -44,55 +46,63 @@ const DriverVerifyDetail = () => {
     const [address, setAddress] = useState('');
     const [image, setImage] = useState<File | null>(null);
     const [password, setPassword] = useState('');
+    const [openDialog, setOpenDialog] = useState(false);
+    const [errorCodeSelected, setErrorCodeSelected] = useState<number[]>([]);
+    const [driversVerify, setDriversVerify] = useState<User[]>([]);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
-    const createRandomUser = (): User => ({
-        UserId: faker.string.uuid(),
-        Name: faker.person.fullName(),
-        Email: faker.internet.email(),
-        PhoneNumber: faker.phone.number(),
-        ProfileImageUrl: faker.image.avatar(),
-        StudentIdCardUrl: faker.image.urlLoremFlickr({ category: 'student', width: 640, height: 480 }),
-        Role: 'Driver',
-        StudentId: faker.string.uuid(),
-        LicenseNumber: faker.string.uuid(),
-        LicenseImageUrl: faker.image.urlLoremFlickr({ category: 'transport', width: 640, height: 480 }),
-        Vehicles: [
-            {
-                VehicleType: faker.vehicle.type(),
-                LicensePlate: faker.vehicle.vrm(),
-                VehicleImageUrl: faker.image.urlLoremFlickr({ category: 'transport', width: 640, height: 480 }),
-                Registration: faker.string.uuid(),
-                RegistrationImageUrl: faker.image.urlLoremFlickr({ category: 'transport', width: 640, height: 480 }),
-            },
-            {
-                VehicleType: faker.vehicle.type(),
-                LicensePlate: faker.vehicle.vrm(),
-                VehicleImageUrl: faker.image.urlLoremFlickr({ category: 'transport', width: 640, height: 480 }),
-                Registration: faker.string.uuid(),
-                RegistrationImageUrl: faker.image.urlLoremFlickr({ category: 'transport', width: 640, height: 480 }),
-            },
-        ],
-        DriverId: faker.string.uuid(),
-        createTime: faker.date.between({ from: '2023-01-01', to: Date.now() }),
-    });
-
-    const usersRan = Array.from({ length: 10 }, createRandomUser);
+    // const usersRan = Array.from({ length: 10 }, createRandomUser);
 
     const { data, error, isLoading } = useQuery({
-        queryKey: ['usersList'],
-        queryFn: () => managementAPI.getUsers({ page, pageSize }),
+        queryKey: ['DriverVerifyList'],
+        queryFn: () => managementAPI.getDriversVerify(),
     });
 
-    const onPageSizeChange = (size: number) => {
-        queryClient.invalidateQueries({ queryKey: ['usersList'] });
-        setPageSize(size);
+    const getDriverVerifyMutation = useMutation({
+        mutationFn: (id: number) => {
+            return managementAPI.getDriverVerifyDetail(id);
+        },
+        onSuccess: (data) => {
+            const user = data?.data.result;
+            setSelectedUser(data?.data.result);
+            console.log('Selected User', user);
+        },
+        onError: (error: { message: any }) => {
+            toast.error(error.message || 'Error fetching data');
+        },
+    });
+
+    type DriverVerify = {
+        userId: number;
+        errorCode: number[];
     };
 
-    const onPageChange = (page: number) => {
-        // queryClient.invalidateQueries({ queryKey: ['usersList'] });
-        console.log('page', page);
-        setPage(page);
+    const updateDriverVerifyMutation = useMutation({
+        mutationFn: ({ userId, errorCode }: DriverVerify) => {
+            return managementAPI.verifyDriver(userId, errorCode);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['DriverVerifyList'] });
+            setOpenDialog(false);
+            setErrorCodeSelected([]);
+            setSelectedUser(null);
+            toast.success('Driver verified successfully');
+        },
+        onError: (error: { message: any }) => {
+            toast.error(error.message || 'Error verifying driver');
+        },
+    });
+
+    const handleGetDriverVerify = (id: number) => {
+        getDriverVerifyMutation.mutate(id);
+    };
+
+    const handleVerifyDriver = (id: number, errorCode: number[]) => {
+        if (errorCode.length === 0) {
+            toast.error('Please select error code');
+            return;
+        }
+        updateDriverVerifyMutation.mutate({ userId: id, errorCode: errorCode });
     };
 
     const showAlert = async (userID: string, action: string, userName: string) => {
@@ -134,100 +144,17 @@ const DriverVerifyDetail = () => {
             });
     };
 
-    const changeRoleUser = useMutation({
-        mutationFn: ({ userID, role }: { userID: string; role: 1 | 1002 }) => {
-            return managementAPI.changeRoleUser(userID, role);
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['users'] });
-            toast.success('Collection added successfully');
-        },
-        onError: (error: { message: any }) => {
-            toast.error(error.message || 'Error change role for user!');
-        },
-    });
-
     useEffect(() => {
         if (error || data?.data.success === false) {
             toast.error('Error fetching data users');
         } else {
-            const collumnsConfig: DataTableColumn<any>[] = [
-                { accessor: 'id', title: 'ID', sortable: true },
-                {
-                    accessor: 'profileImageUrl',
-                    title: 'Profile Image',
-                    sortable: false,
-                    render: (value) => {
-                        return (
-                            <Avatar className="rounded-md">
-                                <AvatarImage src={value.profileImageUrl} alt="@shadcn" />
-                                <AvatarFallback>{value.name}</AvatarFallback>
-                            </Avatar>
-                        );
-                    },
-                },
-                { accessor: 'name', title: 'Name', sortable: true },
-                { accessor: 'email', title: 'Email', sortable: true },
-                { accessor: 'phoneNumber', title: 'Phone', sortable: true },
-                { accessor: 'studentId', title: 'Student ID', sortable: true },
-                {
-                    accessor: 'role',
-                    title: 'Role Name',
-                    sortable: true,
+            if (data?.data.result.data && data?.data.result.data.length > 0) {
+                const users = data?.data.result.data.filter((user: User) => {
+                    return user.role === 'Driver' && (user.verificationStatus === 'Pending' || user.verificationStatus === 'Reject');
+                });
 
-                    render: (value) => {
-                        return (
-                            <Badge variant={'outline'} className={`rounded-sm ${value.role === 'Passenger' ? 'A' : 'b'}`}>
-                                {value.role === 'Passenger' ? <GrUserAdmin className="mr-2" /> : <MdOutlineDeliveryDining className="mr-2 size-4 " />} {value.role}
-                            </Badge>
-                        );
-                    },
-                },
-                {
-                    accessor: 'verified',
-                    title: 'Verified',
-                    sortable: true,
-                    render: (value) => {
-                        return (
-                            <Badge variant={'outline'} className={cn('rounded', { 'bg-red-400 text-white': value.verified !== true, 'bg-orange-500 text-white': value.status === true })}>
-                                {value.verified ? 'True' : 'False'}
-                            </Badge>
-                        );
-                    },
-                },
-                {
-                    accessor: 'action',
-                    title: '',
-                    sortable: false,
-                    render: (value) => {
-                        return (
-                            <div className="space-x-2">
-                                <Button variant={'secondary'} size="sm">
-                                    <RiExchange2Line
-                                        onClick={() => {
-                                            const roleId = value.roleName === 'Admin' ? 1002 : 1;
-                                            changeRoleUser.mutate({ userID: value.id, role: roleId });
-                                        }}
-                                        className="h-4 w-4"
-                                    />
-                                </Button>
-                                {value.status === 'Active' && (
-                                    <Button variant="outline" className="bg-red-500 text-white" size="sm" onClick={() => showAlert(value.id, 'Inactive', value.userName)}>
-                                        <FaUserTimes className="h-4 w-4" />
-                                    </Button>
-                                )}
-                                {value.status !== 'Active' && (
-                                    <Button variant="outline" onClick={() => showAlert(value.id, 'Active', '')} className="bg-orange-300 text-white" size="sm">
-                                        <FaUserCheck className="h-4 w-4" />
-                                    </Button>
-                                )}
-                            </div>
-                        );
-                    },
-                },
-            ];
-            setColumns(collumnsConfig);
-            setUsers(data?.data.result.data || []);
+                setDriversVerify(users);
+            }
         }
     }, [data]);
 
@@ -267,45 +194,50 @@ const DriverVerifyDetail = () => {
                                 <input type="text" className="form-input w-full" placeholder="Search..." value={search} onChange={(e) => setSearch(e.target.value)} />
                             </div>
 
-                            {usersRan.map((user) => (
-                                <button
-                                    key={user.UserId}
-                                    onClick={() => setSelectedUser(user)}
-                                    className={cn('mt-3 flex w-full flex-col items-start gap-2 rounded-lg border bg-transparent p-4 text-left text-sm text-dark transition-all hover:bg-accent')}
-                                >
-                                    <div className="flex w-full gap-4">
-                                        <div className="flex">
-                                            <img
-                                                src={user.ProfileImageUrl} // Mỗi user có avatar khác nhau
-                                                className="w-24 rounded-md object-cover"
-                                                alt="shadcn"
-                                            />
-                                        </div>
-                                        <div className="flex w-full flex-col">
-                                            <div className="flex w-full items-center text-xl font-extrabold">
-                                                <h2>{user.Name}</h2>
-                                                <Badge variant={'outline'} className="ml-3 rounded-md">
-                                                    {user.Role}
-                                                </Badge>
-                                                <div className="ml-auto text-xs text-gray-400">
-                                                    {' '}
-                                                    {formatDistanceToNow(new Date(user.createTime), {
-                                                        addSuffix: true,
-                                                    })}
+                            {driversVerify &&
+                                driversVerify.length > 0 &&
+                                driversVerify.map((user) => (
+                                    <button
+                                        key={user.id}
+                                        onClick={() => handleGetDriverVerify(user.id)}
+                                        className={cn('mt-3 flex w-full flex-col items-start gap-2 rounded-lg border bg-transparent p-4 text-left text-sm text-dark transition-all hover:bg-accent')}
+                                    >
+                                        <div className="flex w-full gap-4">
+                                            <div className="flex">
+                                                <img
+                                                    src={user.profileImageUrl} // Mỗi user có avatar khác nhau
+                                                    className="w-24 rounded-md object-cover"
+                                                    alt="shadcn"
+                                                />
+                                            </div>
+                                            <div className="flex w-full flex-col">
+                                                <div className="flex w-full items-center text-xl font-extrabold">
+                                                    <h2>{user.name}</h2>
+                                                    <Badge variant={user.verificationStatus === 'Pending' ? 'default' : 'destructive'} className="ml-3 rounded-md">
+                                                        {user.verificationStatus}
+                                                    </Badge>
+                                                    <Badge variant={'outline'} className="ml-2 rounded-md">
+                                                        {user.role}
+                                                    </Badge>
+                                                    {/* <div className="ml-auto text-xs text-gray-400">
+                                                        {' '}
+                                                        {formatDistanceToNow(new Date(user.createTime), {
+                                                            addSuffix: true,
+                                                        })}
+                                                    </div> */}
+                                                </div>
+                                                <div className="flex items-center text-gray-500">
+                                                    <span className="mr-2">📧</span>
+                                                    <span>{user.email}</span>
+                                                </div>
+                                                <div className="flex items-center text-gray-500">
+                                                    <span className="mr-2">📞</span>
+                                                    <span>{user.phoneNumber}</span>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center text-gray-500">
-                                                <span className="mr-2">📧</span>
-                                                <span>{user.Email}</span>
-                                            </div>
-                                            <div className="flex items-center text-gray-500">
-                                                <span className="mr-2">📞</span>
-                                                <span>{user.PhoneNumber}</span>
-                                            </div>
                                         </div>
-                                    </div>
-                                </button>
-                            ))}
+                                    </button>
+                                ))}
                         </ScrollArea>
                     </ResizablePanel>
                     <ResizableHandle withHandle={true} />
@@ -315,26 +247,26 @@ const DriverVerifyDetail = () => {
                                 <div className="w-full rounded-lg bg-white p-4 shadow-md">
                                     <div className="flex items-center gap-4">
                                         <div>
-                                            <img src={selectedUser.ProfileImageUrl} className="h-24 w-24 rounded-full object-cover" alt={selectedUser.Name} />
+                                            <img src={selectedUser.profileImageUrl} className="h-24 w-24 rounded-full object-cover" alt={selectedUser.name} />
                                         </div>
 
                                         <div>
-                                            <h2 className="text-2xl font-bold">{selectedUser.Name}</h2>
+                                            <h2 className="text-2xl font-bold">{selectedUser.name}</h2>
                                             <div className="mt-1 flex">
                                                 <Badge variant={'outline'} className=" rounded-md">
-                                                    {selectedUser.UserId}
+                                                    {selectedUser.id}
                                                 </Badge>
                                                 <Badge variant={'outline'} className="ml-1 rounded-md">
-                                                    {selectedUser.Role}
+                                                    {selectedUser.role}
                                                 </Badge>
                                             </div>
 
-                                            <p className="mt-2 text-gray-500">
+                                            {/* <p className="mt-2 text-gray-500">
                                                 Active:{' '}
                                                 {formatDistanceToNow(new Date(selectedUser.createTime), {
                                                     addSuffix: true,
                                                 })}
-                                            </p>
+                                            </p> */}
                                         </div>
                                     </div>
                                     <div className="mt-6">
@@ -350,7 +282,7 @@ const DriverVerifyDetail = () => {
                                                 <p className="text-white-dark">Email</p>
                                             </div>
                                             <div>
-                                                <p>{selectedUser.Email}</p>
+                                                <p>{selectedUser.email}</p>
                                             </div>
                                         </div>
                                         <div className="mt-3 flex justify-between">
@@ -358,7 +290,7 @@ const DriverVerifyDetail = () => {
                                                 <p className="text-white-dark">Phone number</p>
                                             </div>
                                             <div>
-                                                <p>{selectedUser.PhoneNumber}</p>
+                                                <p>{selectedUser.phoneNumber}</p>
                                             </div>
                                         </div>
                                         <div className="mt-3 flex justify-between">
@@ -366,11 +298,11 @@ const DriverVerifyDetail = () => {
                                                 <p className="text-white-dark">StudentId</p>
                                             </div>
                                             <div>
-                                                <p>{selectedUser.StudentId}</p>
+                                                <p>{selectedUser.studentId}</p>
                                             </div>
                                         </div>
                                         <div className="mt-3 flex ">
-                                            <img src={selectedUser.StudentIdCardUrl} className="w-full" alt="" />
+                                            <img src={selectedUser.studentIdCardUrl} className="w-full" alt="" />
                                         </div>
                                     </div>
 
@@ -387,11 +319,11 @@ const DriverVerifyDetail = () => {
                                                 <p className="text-white-dark">License Number</p>
                                             </div>
                                             <div>
-                                                <p>{selectedUser.LicenseNumber}</p>
+                                                <p>{selectedUser.phoneNumber}</p>
                                             </div>
                                         </div>
                                         <div className="mt-3 flex ">
-                                            <img src={selectedUser.LicenseImageUrl} className="w-full" alt="" />
+                                            <img src={undefined} className="w-full" alt="" />
                                         </div>
                                     </div>
 
@@ -403,15 +335,15 @@ const DriverVerifyDetail = () => {
                                             <h3 className=" ml-3 text-lg font-semibold">Vehicles</h3>
                                         </div>
 
-                                        {selectedUser.Vehicles.length > 0 ? (
-                                            selectedUser.Vehicles.map((vehicle, index) => (
+                                        {selectedUser.driverInfo?.vehicles && selectedUser.driverInfo?.vehicles.length > 0 ? (
+                                            selectedUser.driverInfo?.vehicles.map((vehicle, index) => (
                                                 <div key={index} className="mt-4">
                                                     <div className="flex justify-between">
                                                         <div>
                                                             <p className="text-white-dark">Vehicle type</p>
                                                         </div>
                                                         <div>
-                                                            <p>{vehicle.VehicleType}</p>
+                                                            <p>{vehicle.vehicleType}</p>
                                                         </div>
                                                     </div>
                                                     <div className="flex justify-between">
@@ -419,22 +351,22 @@ const DriverVerifyDetail = () => {
                                                             <p className="text-white-dark">License Plate</p>
                                                         </div>
                                                         <div>
-                                                            <p>{vehicle.LicensePlate}</p>
+                                                            <p>{vehicle.licensePlate}</p>
                                                         </div>
                                                     </div>
                                                     <div className="mt-3 flex">
-                                                        <img src={vehicle.VehicleImageUrl} className="w-full rounded-md" alt={`Vehicle ${index + 1}`} />
+                                                        <img src={vehicle.vehicleImageUrl} className="w-full rounded-md" alt={`Vehicle ${index + 1}`} />
                                                     </div>
-                                                    <div className="mt-2 flex justify-between">
+                                                    {/* <div className="mt-2 flex justify-between">
                                                         <div>
                                                             <p className="text-white-dark">Registration</p>
                                                         </div>
                                                         <div>
-                                                            <p>{vehicle.Registration}</p>
+                                                            <p>{vehicle.licensePlate}</p>
                                                         </div>
-                                                    </div>
+                                                    </div> */}
                                                     <div className="mt-3 flex">
-                                                        <img src={vehicle.RegistrationImageUrl} className="w-full rounded-md" alt={`Registration ${index + 1}`} />
+                                                        <img src={vehicle.registrationImageUrl} className="w-full rounded-md" alt={`Registration ${index + 1}`} />
                                                     </div>
                                                 </div>
                                             ))
@@ -443,14 +375,70 @@ const DriverVerifyDetail = () => {
                                         )}
                                     </div>
                                     <div className="flex w-full justify-end">
-                                        <Button variant={'destructive'} className="mt-4">
-                                            <FaHandMiddleFinger className="mr-2" />
-                                            Reject
-                                        </Button>
-                                        <Button variant={'default'} className="ml-3 mt-4">
-                                            <IoCheckmarkDoneSharp className="mr-2" />
-                                            Approve
-                                        </Button>
+                                        <Dialog open={openDialog}>
+                                            <DialogTrigger asChild>
+                                                <Button variant={'default'} onClick={() => setOpenDialog(true)} className="mt-4">
+                                                    <FaHandMiddleFinger className="mr-2" />
+                                                    Verify
+                                                </Button>
+                                            </DialogTrigger>
+                                            <DialogContent className="sm:max-w-[425px]">
+                                                <DialogHeader>
+                                                    <DialogTitle>Driver verify</DialogTitle>
+                                                    <DialogDescription>Select the error in the box below</DialogDescription>
+                                                </DialogHeader>
+                                                <div className="grid gap-4 py-4">
+                                                    <div className="grid grid-cols-4 items-center gap-4">
+                                                        <Label htmlFor="name" className="text-right">
+                                                            Error code
+                                                        </Label>
+                                                        <div className="col-span-3">
+                                                            <Select
+                                                                isMulti
+                                                                name="colors"
+                                                                options={errorCodes}
+                                                                isLoading={updateDriverVerifyMutation.isPending}
+                                                                onChange={(value) => {
+                                                                    console.log(value);
+                                                                    if (!value) {
+                                                                        setErrorCodeSelected([]);
+                                                                        return;
+                                                                    }
+                                                                    if (value.some((v) => v.value === 0) && value.length > 1) {
+                                                                        toast.error('You cannot select SUCCESS with other error codes');
+                                                                        return;
+                                                                    }
+                                                                    setErrorCodeSelected(value.map((item) => item.value));
+                                                                }}
+                                                                className="basic-multi-select w-full"
+                                                                classNamePrefix="select"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <DialogFooter>
+                                                    <DialogClose asChild>
+                                                        <Button
+                                                            onClick={() => {
+                                                                setErrorCodeSelected([]);
+                                                                setOpenDialog(false);
+                                                            }}
+                                                            variant={'outline'}
+                                                        >
+                                                            Cancel
+                                                        </Button>
+                                                    </DialogClose>
+                                                    <Button
+                                                        onClick={() => {
+                                                            handleVerifyDriver(selectedUser.id, errorCodeSelected);
+                                                        }}
+                                                        type="submit"
+                                                    >
+                                                        Save changes
+                                                    </Button>
+                                                </DialogFooter>
+                                            </DialogContent>
+                                        </Dialog>
                                     </div>
                                 </div>
                             ) : (

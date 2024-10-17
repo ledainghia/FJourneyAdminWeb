@@ -35,6 +35,18 @@ export const managementAPI = {
         console.log(page, pageSize);
         return await axios.get(`${baseUrl}/api/users?Page=${page}&PageSize=${pageSize}`);
     },
+    getDriversVerify: async () => {
+        return await axios.get(`${baseUrl}/api/users?Role=Driver`);
+    },
+    getDriverVerifyDetail: async (id: number) => {
+        return await axios.get(`${baseUrl}/api/users/${id}`);
+    },
+    verifyDriver: async (id: number, errorcodes: number[]) => {
+        return await axios.post(`${baseUrl}/api/users/change-status`, {
+            userId: id,
+            errorCodes: errorcodes,
+        });
+    },
 
     changeStatusUser: async (id: string, status: string) => {
         return await axiosInstance.put(`/api/user/status`, {

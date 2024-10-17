@@ -1,24 +1,35 @@
-export type Vehicle = {
-    VehicleType: string;
-    LicensePlate: string;
-    VehicleImageUrl: string;
-    Registration: string;
-    RegistrationImageUrl: string;
+// Vehicle type
+type Vehicle = {
+    id: number;
+    licensePlate: string;
+    vehicleType: string;
+    isVerified: boolean;
+    vehicleImageUrl: string;
+    registrationImageUrl: string;
 };
 
-// Định nghĩa type cho User
+// DriverInfo type
+type DriverInfo = {
+    id: number;
+    licenseNumber: string;
+    licenseImageUrl: string;
+    verified: boolean;
+    vehicles: Vehicle[];
+};
+
+// Result type
 export type User = {
-    UserId: string;
-    Name: string;
-    Email: string;
-    PhoneNumber: string;
-    ProfileImageUrl: string;
-    StudentIdCardUrl: string;
-    Role: string;
-    StudentId: string;
-    LicenseNumber: string;
-    LicenseImageUrl: string;
-    Vehicles: Vehicle[];
-    DriverId: string;
-    createTime: Date; // Thời gian tạo user
+    id: number;
+    name: string;
+    email: string;
+    phoneNumber: string;
+    profileImageUrl: string;
+    studentIdCardUrl: string;
+    role: string;
+    studentId: string;
+    verified: boolean;
+    verificationStatus: string;
+    isMailValid: boolean;
+    driverInfo: DriverInfo | null;
+    wallet: any | null;
 };
