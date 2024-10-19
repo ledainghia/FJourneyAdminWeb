@@ -15,6 +15,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { DataTableColumn } from 'mantine-datatable';
 import { useEffect, useState } from 'react';
 import { FaHandMiddleFinger, FaInfo, FaMotorcycle } from 'react-icons/fa6';
+import { MdOutlineVerifiedUser } from 'react-icons/md';
 import { TbLicense } from 'react-icons/tb';
 import Select from 'react-select';
 import { toast } from 'react-toastify';
@@ -367,7 +368,7 @@ const DriverVerifyDetail = () => {
                                         <Dialog open={openDialog}>
                                             <DialogTrigger asChild>
                                                 <Button variant={'default'} onClick={() => setOpenDialog(true)} className="mt-4">
-                                                    <FaHandMiddleFinger className="mr-2" />
+                                                    <MdOutlineVerifiedUser className="mr-2" />
                                                     Verify
                                                 </Button>
                                             </DialogTrigger>
