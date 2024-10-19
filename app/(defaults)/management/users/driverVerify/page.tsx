@@ -1,7 +1,4 @@
 'use client';
-import DataTableCustom from '@/components/datatables/data-table';
-import Loading from '@/components/layouts/loading';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
@@ -9,28 +6,19 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-import Select from 'react-select';
 import { managementAPI } from '@/config/axios/axios';
+import errorCodes from '@/data/errorCode';
 import { User } from '@/datatype/usersType';
 import { cn } from '@/lib/utils';
-import { faker } from '@faker-js/faker';
-import { Input } from '@mantine/core';
 import { Label } from '@radix-ui/react-label';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { formatDistanceToNow } from 'date-fns';
-import { set } from 'lodash';
 import { DataTableColumn } from 'mantine-datatable';
 import { useEffect, useState } from 'react';
-import { FaCheck, FaUserCheck, FaUserTimes } from 'react-icons/fa';
 import { FaHandMiddleFinger, FaInfo, FaMotorcycle } from 'react-icons/fa6';
-import { GrUserAdmin } from 'react-icons/gr';
-import { IoAddCircleOutline, IoCheckmarkDoneOutline, IoCheckmarkDoneSharp } from 'react-icons/io5';
-import { MdOutlineDeliveryDining } from 'react-icons/md';
-import { RiExchange2Line } from 'react-icons/ri';
-import { toast } from 'react-toastify';
 import { TbLicense } from 'react-icons/tb';
+import Select from 'react-select';
+import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
-import errorCodes from '@/data/errorCode';
 
 const DriverVerifyDetail = () => {
     const [columns, setColumns] = useState<DataTableColumn<any>[]>([]);
@@ -149,8 +137,9 @@ const DriverVerifyDetail = () => {
             toast.error('Error fetching data users');
         } else {
             if (data?.data.result.data && data?.data.result.data.length > 0) {
+                console.table(data?.data.result.data);
                 const users = data?.data.result.data.filter((user: User) => {
-                    return user.role === 'Driver' && (user.verificationStatus === 'Pending' || user.verificationStatus === 'Reject');
+                    return user.role.toLowerCase() === 'driver' && (user.verificationStatus === 'Pending' || user.verificationStatus === 'Reject' || user.verified === false);
                 });
 
                 setDriversVerify(users);
