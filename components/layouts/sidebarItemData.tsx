@@ -1,8 +1,8 @@
 import IconMenuUsers from '@/components/icon/menu/icon-menu-users';
 import { AiFillProduct } from 'react-icons/ai';
-import { BiSolidCategory } from 'react-icons/bi';
+import { BiSolidCategory, BiTrip } from 'react-icons/bi';
 import { FaUserGear, FaUsersGear } from 'react-icons/fa6';
-import { MdBorderBottom, MdCampaign, MdOutlineDeliveryDining } from 'react-icons/md';
+import { MdBorderBottom, MdCampaign, MdMyLocation, MdOutlineDeliveryDining } from 'react-icons/md';
 import { RiLockPasswordFill } from 'react-icons/ri';
 import { BsCollectionFill } from 'react-icons/bs';
 import { ImProfile } from 'react-icons/im';
@@ -51,9 +51,14 @@ export const sidebarItemData: sidebarItem[] = [
                 ],
             },
             {
-                title: 'Customers',
-                icon: <FaUsersGear className={classNamesForIconSidebar} />,
-                path: '/management/customers',
+                title: 'Trip requests',
+                icon: <BiTrip className={classNamesForIconSidebar} />,
+                path: '/management/trip-requests',
+            },
+            {
+                title: 'Zones',
+                icon: <MdMyLocation className={classNamesForIconSidebar} />,
+                path: '/management/zones',
             },
 
             {

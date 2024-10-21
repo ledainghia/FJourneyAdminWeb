@@ -1,4 +1,4 @@
-import { Category } from '@/datatype/manageType';
+import { Category, Zone } from '@/datatype/manageType';
 import { userLogin } from '@/datatype/userType';
 import axios from 'axios';
 import axiosInstance from './interceptorAxios';
@@ -48,6 +48,12 @@ export const managementAPI = {
         });
     },
 
+    getZones: async ({ pageSize, page }: pagination) => {
+        return await axios.get(`${baseUrl}/api/zones?Page=${page}&PageSize=${pageSize}`);
+    },
+    createZones: async (zone: Zone) => {
+        return await axios.post(`${baseUrl}/api/zones`, zone);
+    },
     changeStatusUser: async (id: string, status: string) => {
         return await axiosInstance.put(`/api/user/status`, {
             userId: id,
