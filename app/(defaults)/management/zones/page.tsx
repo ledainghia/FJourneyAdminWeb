@@ -10,7 +10,7 @@ import { Input } from '@mantine/core';
 import { Label } from '@radix-ui/react-label';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { DataTableColumn } from 'mantine-datatable';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { CiEdit } from 'react-icons/ci';
 import { IoAddCircleOutline } from 'react-icons/io5';
 import { MdOutlineDelete } from 'react-icons/md';
@@ -24,8 +24,10 @@ const page = () => {
     const [search, setSearch] = useState('');
     const [zones, setZones] = useState<Zone[]>([]);
     const [zoneName, setZoneName] = useState('');
-    const [description, setDescription] = useState('');
+    const [description, setDescription] = useState<string | undefined>('');
     const queryClient = useQueryClient();
+    const zoneNameRef = useRef<HTMLInputElement>(null);
+    const descriptionRef = useRef<HTMLTextAreaElement>(null);
 
     const [password, setPassword] = useState('');
 
@@ -45,11 +47,24 @@ const page = () => {
         setPage(page);
     };
 
+    const deleteZone = useMutation({
+        mutationFn: (id: string) => {
+            return managementAPI.deleteZone(id);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['zones'] });
+            toast.success('Zone deleted successfully');
+        },
+        onError: (error) => {
+            toast.error(error.message || 'Error deleting zone!');
+        },
+    });
+
     useEffect(() => {
         queryClient.invalidateQueries({ queryKey: ['usersList'] });
     }, [page, pageSize]);
 
-    const showAlert = async (userID: string, action: string, userName: string) => {
+    const showAlert = async (id: string | undefined, action: string, zoneName: string) => {
         const swalWithBootstrapButtons = Swal.mixin({
             customClass: {
                 confirmButton: 'btn bg-red-500 text-white ltr:ml-3 rtl:mr-3',
@@ -61,7 +76,7 @@ const page = () => {
         swalWithBootstrapButtons
             .fire({
                 title: 'Are you sure?',
-                text: `You want to ${action} ${userName} with ${userID}!`,
+                text: `You want to ${action} ${zoneName} with id: ${id}!`,
                 icon: 'warning',
                 showCancelButton: true,
 
@@ -72,15 +87,11 @@ const page = () => {
             })
             .then((result) => {
                 if (result.value) {
-                    managementAPI
-                        .changeStatusUser(userID, action)
-                        .then(() => {
-                            queryClient.invalidateQueries({ queryKey: ['users'] });
-                            toast.success('User status changed successfully');
-                        })
-                        .catch(() => {
-                            toast.error('Error changing user status');
-                        });
+                    if (!id) {
+                        toast.error('Zone id is required');
+                        return;
+                    }
+                    deleteZone.mutate(id);
                     swalWithBootstrapButtons.fire('Deleted!', 'Your file has been deleted.', 'success');
                 } else if (result.dismiss === Swal.DismissReason.cancel) {
                     swalWithBootstrapButtons.fire('Cancelled', 'No change', 'info');
@@ -88,16 +99,16 @@ const page = () => {
             });
     };
 
-    const changeRoleUser = useMutation({
-        mutationFn: ({ userID, role }: { userID: string; role: 1 | 1002 }) => {
-            return managementAPI.changeRoleUser(userID, role);
+    const updateZone = useMutation({
+        mutationFn: (zone: Zone) => {
+            return managementAPI.updateZone(zone);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['users'] });
-            toast.success('Collection added successfully');
+            queryClient.invalidateQueries({ queryKey: ['zones'] });
+            toast.success('Zone updated successfully');
         },
         onError: (error) => {
-            toast.error(error.message || 'Error change role for user!');
+            toast.error(error.message || 'Error updating zone!');
         },
     });
 
@@ -142,53 +153,49 @@ const page = () => {
                                             <DialogTitle>Change zone</DialogTitle>
                                             <DialogDescription> Click save when you're done.</DialogDescription>
                                         </DialogHeader>
+
                                         <div className="grid gap-4 py-4">
                                             <div className="grid grid-cols-4 items-center gap-4">
                                                 <Label htmlFor="name" className="text-right">
                                                     Zone name
                                                 </Label>
-                                                <Input
-                                                    id="zoneName"
-                                                    value={rowData.zoneName}
-                                                    onChange={(e) => {
-                                                        setZoneName(e.target.value);
-                                                    }}
-                                                    className="col-span-3"
-                                                />
+                                                <Input id="zoneName" defaultValue={rowData.zoneName} ref={zoneNameRef} className="col-span-3" />
                                             </div>
                                             <div className="grid grid-cols-4 items-center gap-4">
                                                 <Label htmlFor="Password" className="text-right">
                                                     Description
                                                 </Label>
-                                                <Textarea
-                                                    value={rowData.description}
-                                                    onChange={(e) => {
-                                                        console.log(e.target.value);
-                                                        setDescription(e.target.value);
-                                                    }}
-                                                    id="Password"
-                                                    className="col-span-3"
-                                                />
+                                                <Textarea defaultValue={rowData.description} id="Password" ref={descriptionRef} className="col-span-3" />
                                             </div>
                                         </div>
                                         <DialogFooter>
                                             <DialogClose>
                                                 <Button variant={'link'}>Cancel</Button>
+                                                <Button
+                                                    onClick={() => {
+                                                        const zoneName = zoneNameRef.current?.value;
+                                                        const description = descriptionRef.current?.value;
+                                                        if (!zoneName) {
+                                                            toast.error('Zone name is required');
+                                                            return;
+                                                        }
+
+                                                        updateZone.mutate({ id: rowData.id, zoneName: zoneNameRef.current?.value, description: descriptionRef.current?.value });
+                                                    }}
+                                                >
+                                                    Save changes
+                                                </Button>
                                             </DialogClose>
-                                            <Button
-                                                onClick={() => {
-                                                    createZone.mutate({ zoneName, description });
-                                                    setZoneName('');
-                                                    setDescription('');
-                                                }}
-                                            >
-                                                Save changes
-                                            </Button>
                                         </DialogFooter>
                                     </DialogContent>
                                 </Dialog>
 
-                                <Button variant="outline">
+                                <Button
+                                    onClick={() => {
+                                        showAlert(rowData.id?.toString(), 'Remove', rowData.zoneName);
+                                    }}
+                                    variant="outline"
+                                >
                                     <MdOutlineDelete size={19} />
                                 </Button>
                             </div>
@@ -267,16 +274,16 @@ const page = () => {
                             <DialogFooter>
                                 <DialogClose>
                                     <Button variant={'link'}>Cancel</Button>
+                                    <Button
+                                        onClick={() => {
+                                            createZone.mutate({ zoneName, description });
+                                            setZoneName('');
+                                            setDescription('');
+                                        }}
+                                    >
+                                        Save changes
+                                    </Button>
                                 </DialogClose>
-                                <Button
-                                    onClick={() => {
-                                        createZone.mutate({ zoneName, description });
-                                        setZoneName('');
-                                        setDescription('');
-                                    }}
-                                >
-                                    Save changes
-                                </Button>
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>

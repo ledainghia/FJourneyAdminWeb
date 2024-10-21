@@ -3,7 +3,7 @@ import { userLogin } from '@/datatype/userType';
 import axios from 'axios';
 import axiosInstance from './interceptorAxios';
 import { Product } from '@/datatype/productType';
-import { add } from 'lodash';
+import { add, update } from 'lodash';
 
 const baseUrl = 'https://api.fjourney.site';
 
@@ -53,6 +53,14 @@ export const managementAPI = {
     },
     createZones: async (zone: Zone) => {
         return await axios.post(`${baseUrl}/api/zones`, zone);
+    },
+
+    updateZone: async (zone: Zone) => {
+        return await axios.put(`${baseUrl}/api/zones/${zone.id}`, zone);
+    },
+
+    deleteZone: async (id: string) => {
+        return await axios.delete(`${baseUrl}/api/zones/${id}`);
     },
     changeStatusUser: async (id: string, status: string) => {
         return await axiosInstance.put(`/api/user/status`, {
