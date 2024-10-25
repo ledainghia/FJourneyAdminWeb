@@ -1,11 +1,11 @@
 import IconMenuUsers from '@/components/icon/menu/icon-menu-users';
 import { AiFillProduct } from 'react-icons/ai';
 import { BiSolidCategory, BiTrip } from 'react-icons/bi';
-import { FaUserGear, FaUsersGear } from 'react-icons/fa6';
-import { MdBorderBottom, MdCampaign, MdMyLocation, MdOutlineDeliveryDining } from 'react-icons/md';
-import { RiLockPasswordFill } from 'react-icons/ri';
 import { BsCollectionFill } from 'react-icons/bs';
+import { FaUserGear } from 'react-icons/fa6';
 import { ImProfile } from 'react-icons/im';
+import { MdBorderBottom, MdCampaign, MdMyLocation } from 'react-icons/md';
+import { RiLockPasswordFill } from 'react-icons/ri';
 // Define the type for a sidebar item
 export type sidebarItem = {
     title: string;

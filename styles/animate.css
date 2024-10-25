@@ -3685,3 +3685,19 @@
     -webkit-animation-name: slideOutUp;
     animation-name: slideOutUp;
 }
+
+.animated-dash-line {
+    position: relative;
+    background: linear-gradient(90deg, transparent, black 50%, transparent 100%);
+    background-size: 10px 1px;
+    animation: dashAnimation 1s linear infinite;
+}
+
+@keyframes dashAnimation {
+    from {
+        background-position: 0;
+    }
+    to {
+        background-position: 10px;
+    }
+}

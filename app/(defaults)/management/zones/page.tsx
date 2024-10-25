@@ -1,9 +1,10 @@
 'use client';
-import DataTableCustom from '@/components/datatables/data-table';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import ZonesList from '@/components/zones/zonesList';
 import { managementAPI } from '@/config/axios/axios';
 import { Zone } from '@/datatype/manageType';
 import { Input } from '@mantine/core';
@@ -12,10 +13,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { DataTableColumn } from 'mantine-datatable';
 import { useEffect, useRef, useState } from 'react';
 import { CiEdit } from 'react-icons/ci';
-import { IoAddCircleOutline } from 'react-icons/io5';
 import { MdOutlineDelete } from 'react-icons/md';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
+
+import ZonePrices from '@/components/zones/zonesPrice';
 
 const page = () => {
     const [columns, setColumns] = useState<DataTableColumn<any>[]>([]);
@@ -225,82 +227,31 @@ const page = () => {
             </div>
 
             <div className="panel mt-6">
-                <div className="mb-4.5 flex flex-col gap-5 md:flex-row md:items-center">
-                    <div className="ltr:mr-auto rtl:ml-auto">
-                        <input type="text" className="form-input w-auto" placeholder="Search..." value={search} onChange={(e) => setSearch(e.target.value)} />
-                    </div>
-
-                    <Dialog>
-                        <DialogTrigger asChild>
-                            <Button variant={'outline'}>
-                                <IoAddCircleOutline className="mr-2" />
-                                Add new zone
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[425px]">
-                            <DialogHeader>
-                                <DialogTitle>Add new zone</DialogTitle>
-                                <DialogDescription> Click save when you're done.</DialogDescription>
-                            </DialogHeader>
-                            <div className="grid gap-4 py-4">
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="name" className="text-right">
-                                        Zone name
-                                    </Label>
-                                    <Input
-                                        id="zoneName"
-                                        value={zoneName}
-                                        onChange={(e) => {
-                                            setZoneName(e.target.value);
-                                        }}
-                                        className="col-span-3"
-                                    />
-                                </div>
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="Password" className="text-right">
-                                        Description
-                                    </Label>
-                                    <Textarea
-                                        value={description}
-                                        onChange={(e) => {
-                                            console.log(e.target.value);
-                                            setDescription(e.target.value);
-                                        }}
-                                        id="Password"
-                                        className="col-span-3"
-                                    />
-                                </div>
-                            </div>
-                            <DialogFooter>
-                                <DialogClose>
-                                    <Button variant={'link'}>Cancel</Button>
-                                    <Button
-                                        onClick={() => {
-                                            createZone.mutate({ zoneName, description });
-                                            setZoneName('');
-                                            setDescription('');
-                                        }}
-                                    >
-                                        Save changes
-                                    </Button>
-                                </DialogClose>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
-                </div>
-                <DataTableCustom
-                    rowData={data?.data.result.data}
-                    isFetching={isLoading}
-                    columns={columns}
-                    search={search}
-                    setSearch={setSearch}
-                    onPageChange={onPageChange}
-                    onPageSizeChange={onPageSizeChange}
-                    page={page}
-                    setPage={setPage}
-                    pageSize={pageSize}
-                    totalRecords={data?.data.result.totalItems}
-                />
+                <Tabs defaultValue="zonesList" className=" mb-2">
+                    <TabsList>
+                        <TabsTrigger value="zonesList">Zones List</TabsTrigger>
+                        <TabsTrigger value="zonesSetting">Zones Price</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="zonesList" className="mt-4">
+                        <ZonesList
+                            zones={zones}
+                            columns={columns}
+                            isLoading={isLoading}
+                            page={page}
+                            setPage={setPage}
+                            pageSize={pageSize}
+                            totalRecords={data?.data.result.totalItems || 0}
+                            search={search}
+                            onPageChange={setPage}
+                            onPageSizeChange={setPageSize}
+                            onSearchChange={setSearch}
+                            onCreateZone={(zone) => createZone.mutate(zone)}
+                        />
+                    </TabsContent>
+                    <TabsContent value="zonesSetting">
+                        <ZonePrices zonePrices={zones} />
+                    </TabsContent>
+                </Tabs>
             </div>
         </div>
     );

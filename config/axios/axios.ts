@@ -4,6 +4,7 @@ import axios from 'axios';
 import axiosInstance from './interceptorAxios';
 import { Product } from '@/datatype/productType';
 import { add, update } from 'lodash';
+import { ZonePrices } from '@/datatype/zoneType';
 
 const baseUrl = 'https://api.fjourney.site';
 
@@ -62,6 +63,20 @@ export const managementAPI = {
     deleteZone: async (id: string) => {
         return await axios.delete(`${baseUrl}/api/zones/${id}`);
     },
+
+    getPricesTable: async () => {
+        return await axios.get(`${baseUrl}/api/pricetables`);
+    },
+    createPricesTable: async (data: ZonePrices) => {
+        return await axios.post(`${baseUrl}/api/pricetables`, data);
+    },
+    updatePricesTable: async (data: ZonePrices) => {
+        return await axios.put(`${baseUrl}/api/pricetables/${data.id}`, data);
+    },
+    deletePricesTable: async (id: string) => {
+        return await axios.delete(`${baseUrl}/api/pricetables/${id}`);
+    },
+
     changeStatusUser: async (id: string, status: string) => {
         return await axiosInstance.put(`/api/user/status`, {
             userId: id,
