@@ -29,6 +29,7 @@ export const userAPI = {
 type pagination = {
     page: number;
     pageSize: number;
+    search?: string;
 };
 
 export const managementAPI = {
@@ -75,6 +76,10 @@ export const managementAPI = {
     },
     deletePricesTable: async (id: string) => {
         return await axios.delete(`${baseUrl}/api/pricetables/${id}`);
+    },
+
+    getCancelReasons: async ({ page, pageSize, search }: pagination) => {
+        return await axios.get(`${baseUrl}/api/cancellationreasons?Page=${page}&PageSize=${pageSize}${search ? `&Search=${search}` : ''}`);
     },
 
     changeStatusUser: async (id: string, status: string) => {

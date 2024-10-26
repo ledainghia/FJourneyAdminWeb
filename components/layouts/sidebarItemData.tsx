@@ -6,6 +6,7 @@ import { FaUserGear } from 'react-icons/fa6';
 import { ImProfile } from 'react-icons/im';
 import { MdBorderBottom, MdCampaign, MdMyLocation } from 'react-icons/md';
 import { RiLockPasswordFill } from 'react-icons/ri';
+import { TbAdjustmentsCancel } from 'react-icons/tb';
 // Define the type for a sidebar item
 export type sidebarItem = {
     title: string;
@@ -62,63 +63,9 @@ export const sidebarItemData: sidebarItem[] = [
             },
 
             {
-                title: 'Products',
-                icon: <AiFillProduct className={classNamesForIconSidebar} />,
-                subMenu: [
-                    {
-                        title: 'Product List',
-                        path: '/management/products',
-                    },
-                    {
-                        title: 'Add Product',
-                        path: '/management/products/addNewProduct',
-                    },
-                    {
-                        title: 'Add Recommend Product',
-                        path: '/management/products/addRecomentProduct',
-                    },
-                ],
-            },
-            {
-                title: 'Collections',
-                icon: <BsCollectionFill className={classNamesForIconSidebar} />,
-                path: '/management/collections',
-            },
-            {
-                title: 'Campaigns',
-                icon: <MdCampaign className={classNamesForIconSidebar} />,
-                path: '/management/campaigns',
-            },
-            {
-                title: 'Categories',
-                icon: <BiSolidCategory className={classNamesForIconSidebar} />,
-                path: '/management/categories',
-            },
-            {
-                title: 'Orders',
-                icon: <MdBorderBottom className={classNamesForIconSidebar} />,
-                subMenu: [
-                    {
-                        title: 'Payment',
-                        path: '/management/orders/payment',
-                    },
-                    {
-                        title: 'History',
-                        path: '/management/orders/history',
-                    },
-                    {
-                        title: 'Order Detail',
-                        path: '/management/orders/order-detail/:id',
-                    },
-                    {
-                        title: 'Order Tracking',
-                        path: '/management/orders/order-tracking',
-                    },
-                    {
-                        title: 'Boos mayf ddepj trai',
-                        path: '/management/orders/boos-mayf-ddepj-trai',
-                    },
-                ],
+                title: 'Cancel Reason',
+                icon: <TbAdjustmentsCancel className={classNamesForIconSidebar} />,
+                path: '/management/cancel-reason',
             },
         ],
     },

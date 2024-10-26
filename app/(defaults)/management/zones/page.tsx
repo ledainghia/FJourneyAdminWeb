@@ -25,13 +25,9 @@ const page = () => {
     const [pageSize, setPageSize] = useState(10);
     const [search, setSearch] = useState('');
     const [zones, setZones] = useState<Zone[]>([]);
-    const [zoneName, setZoneName] = useState('');
-    const [description, setDescription] = useState<string | undefined>('');
     const queryClient = useQueryClient();
     const zoneNameRef = useRef<HTMLInputElement>(null);
     const descriptionRef = useRef<HTMLTextAreaElement>(null);
-
-    const [password, setPassword] = useState('');
 
     const { data, error, isLoading } = useQuery({
         queryKey: ['zones'],
@@ -39,15 +35,6 @@ const page = () => {
             return managementAPI.getZones({ page, pageSize });
         },
     });
-
-    const onPageSizeChange = (size: number) => {
-        setPageSize(size);
-    };
-
-    const onPageChange = (page: number) => {
-        console.log('page', page);
-        setPage(page);
-    };
 
     const deleteZone = useMutation({
         mutationFn: (id: string) => {
