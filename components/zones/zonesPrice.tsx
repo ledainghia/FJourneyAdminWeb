@@ -5,29 +5,20 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import Select from 'react-select';
-import { Zone } from '@/datatype/manageType';
-import { useEffect, useMemo, useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { managementAPI } from '@/config/axios/axios';
-import { Label } from '../ui/label';
-import { ZonePrices as ZonePriceTp } from '@/datatype/zoneType';
-import { toast } from 'react-toastify';
-import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarShortcut, MenubarTrigger } from '../ui/menubar';
-import { er } from '@fullcalendar/core/internal-common';
-import { MdDeleteOutline, MdEdit } from 'react-icons/md';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { Select as Select2, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ghost } from 'sortablejs';
-import { da } from '@faker-js/faker/.';
+import { managementAPI } from '@/config/axios/axios';
+import { Zone } from '@/datatype/manageType';
+import { ZonePrices as ZonePriceTp } from '@/datatype/zoneType';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useMemo, useState } from 'react';
+import { MdDeleteOutline, MdEdit } from 'react-icons/md';
+import Select from 'react-select';
+import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
-const options = [
-    { value: 'chocolate', label: 'Chocolate' },
-    { value: 'strawberry', label: 'Strawberry' },
-    { value: 'vanilla', label: 'Vanilla' },
-];
+import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarTrigger } from '../ui/menubar';
 
 type ZonePricesProps = {
     zonePrices: Zone[];

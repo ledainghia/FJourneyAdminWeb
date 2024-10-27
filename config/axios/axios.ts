@@ -5,6 +5,7 @@ import axiosInstance from './interceptorAxios';
 import { Product } from '@/datatype/productType';
 import { add, update } from 'lodash';
 import { ZonePrices } from '@/datatype/zoneType';
+import { CancellationReasons } from '@/datatype/cancellationReasons';
 
 const baseUrl = 'https://api.fjourney.site';
 
@@ -80,6 +81,15 @@ export const managementAPI = {
 
     getCancelReasons: async ({ page, pageSize, search }: pagination) => {
         return await axios.get(`${baseUrl}/api/cancellationreasons?Page=${page}&PageSize=${pageSize}${search ? `&Search=${search}` : ''}`);
+    },
+    updateCancelReason: async (data: CancellationReasons) => {
+        return await axios.put(`${baseUrl}/api/cancellationreasons/${data.reasonId}`, data);
+    },
+    createCancelReason: async (data: CancellationReasons) => {
+        return await axios.post(`${baseUrl}/api/cancellationreasons`, data);
+    },
+    deleteCancelReason: async (reasonId: string) => {
+        return await axios.delete(`${baseUrl}/api/cancellationreasons/${reasonId}`);
     },
 
     changeStatusUser: async (id: string, status: string) => {

@@ -6,17 +6,30 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { managementAPI } from '@/config/axios/axios';
 import { CancellationReasons } from '@/datatype/cancellationReasons';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Input } from '@mantine/core';
 import { Label } from '@radix-ui/react-label';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { debounce } from 'lodash';
+import { debounce, set } from 'lodash';
 import { DataTableColumn } from 'mantine-datatable';
-import { SetStateAction, useCallback, useEffect, useState } from 'react';
-import { FaUserCheck, FaUserTimes } from 'react-icons/fa';
+import { SetStateAction, use, useCallback, useEffect, useRef, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { FaRegEdit, FaUserCheck, FaUserTimes } from 'react-icons/fa';
 import { IoAddCircleOutline } from 'react-icons/io5';
+import { MdOutlineDelete } from 'react-icons/md';
 import { RiExchange2Line } from 'react-icons/ri';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
+import { z } from 'zod';
+import UpdateCancelReasonDialog from './dialogUpdateCancelReason';
+
+const FormSchema = z.object({
+    reasonId: z.string().optional(),
+    content: z.string().nonempty("Content can't be empty"),
+});
+
+type FormType = z.infer<typeof FormSchema>;
 
 const Page = () => {
     const [columns, setColumns] = useState<DataTableColumn<any>[]>([]);
@@ -25,13 +38,14 @@ const Page = () => {
     const [search, setSearch] = useState('');
     const [cancelReasons, setCancelReasons] = useState<CancellationReasons[]>([]);
     const queryClient = useQueryClient();
-    const [role, setRole] = useState('1');
-    const [userName, setUserName] = useState('');
-    const [email, setEmail] = useState('');
-    const [phone, setPhone] = useState('');
-    const [address, setAddress] = useState('');
-    const [image, setImage] = useState<File | null>(null);
-    const [password, setPassword] = useState('');
+    const [open, setOpen] = useState(false);
+
+    const form = useForm<FormType>({
+        resolver: zodResolver(FormSchema),
+        defaultValues: {
+            content: '',
+        },
+    });
 
     const { data, error, isLoading } = useQuery({
         queryKey: ['CancelReasons'],
@@ -53,7 +67,21 @@ const Page = () => {
         queryClient.invalidateQueries({ queryKey: ['CancelReasons'] });
     }, [page, pageSize]);
 
-    const showAlert = async (userID: string, action: string, userName: string) => {
+    const deleteCancelReason = useMutation({
+        mutationFn: (reasonId: string) => managementAPI.deleteCancelReason(reasonId),
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: ['CancelReasons'] });
+        },
+        onSuccess: () => {
+            toast.success('Delete cancel reason successfully.');
+        },
+        onError: (error) => {
+            console.log(error);
+            toast.error(error.message || 'An error occurred.');
+        },
+    });
+
+    const showAlert = async (reasonId: string, action: string, content: string) => {
         const swalWithBootstrapButtons = Swal.mixin({
             customClass: {
                 confirmButton: 'btn bg-red-500 text-white ltr:ml-3 rtl:mr-3',
@@ -65,7 +93,7 @@ const Page = () => {
         swalWithBootstrapButtons
             .fire({
                 title: 'Are you sure?',
-                text: `You want to ${action} ${userName} with ${userID}!`,
+                text: `You want to ${action}  with cancel reason id: ${reasonId} and content: ${content}!`,
                 icon: 'warning',
                 showCancelButton: true,
 
@@ -76,34 +104,13 @@ const Page = () => {
             })
             .then((result) => {
                 if (result.value) {
-                    managementAPI
-                        .changeStatusUser(userID, action)
-                        .then(() => {
-                            queryClient.invalidateQueries({ queryKey: ['users'] });
-                            toast.success('User status changed successfully');
-                        })
-                        .catch(() => {
-                            toast.error('Error changing user status');
-                        });
+                    deleteCancelReason.mutate(reasonId);
                     swalWithBootstrapButtons.fire('Deleted!', 'Your file has been deleted.', 'success');
                 } else if (result.dismiss === Swal.DismissReason.cancel) {
                     swalWithBootstrapButtons.fire('Cancelled', 'No change', 'info');
                 }
             });
     };
-
-    const changeRoleUser = useMutation({
-        mutationFn: ({ userID, role }: { userID: string; role: 1 | 1002 }) => {
-            return managementAPI.changeRoleUser(userID, role);
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['users'] });
-            toast.success('Collection added successfully');
-        },
-        onError: (error) => {
-            toast.error(error.message || 'Error change role for user!');
-        },
-    });
 
     useEffect(() => {
         if (error || data?.data.success === false) {
@@ -117,29 +124,16 @@ const Page = () => {
                     accessor: 'action',
                     title: '',
                     sortable: false,
+                    cellsClassName: 'flex justify-end ',
 
                     render: (value) => {
                         return (
-                            <div className="max-w-56 space-x-2">
-                                <Button variant={'secondary'} size="sm">
-                                    <RiExchange2Line
-                                        onClick={() => {
-                                            const roleId = value.roleName === 'Admin' ? 1002 : 1;
-                                            changeRoleUser.mutate({ userID: value.id, role: roleId });
-                                        }}
-                                        className="h-4 w-4"
-                                    />
+                            <div className="flex space-x-2">
+                                <UpdateCancelReasonDialog key={value.reasonId} content={value.content} reasonId={value.reasonId} />
+
+                                <Button variant="outline" onClick={() => showAlert(value.reasonId, 'Delete', value.content)} className="bg-orange-300 text-white" size="sm">
+                                    <MdOutlineDelete className="h-4 w-4" />
                                 </Button>
-                                {value.status === 'Active' && (
-                                    <Button variant="outline" className="bg-red-500 text-white" size="sm" onClick={() => showAlert(value.id, 'Inactive', value.userName)}>
-                                        <FaUserTimes className="h-4 w-4" />
-                                    </Button>
-                                )}
-                                {value.status !== 'Active' && (
-                                    <Button variant="outline" onClick={() => showAlert(value.id, 'Active', '')} className="bg-orange-300 text-white" size="sm">
-                                        <FaUserCheck className="h-4 w-4" />
-                                    </Button>
-                                )}
                             </div>
                         );
                     },
@@ -150,6 +144,26 @@ const Page = () => {
         }
     }, [data]);
 
+    const createCancelReason = useMutation({
+        mutationFn: (data: CancellationReasons) => managementAPI.createCancelReason(data),
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: ['CancelReasons'] });
+        },
+        onSuccess: () => {
+            toast.success('Create cancel reason successfully.');
+            setOpen(false);
+            form.reset();
+        },
+        onError: (error) => {
+            console.log(error);
+            toast.error(error.message || 'An error occurred.');
+        },
+    });
+
+    function addCancelReason(data: FormType) {
+        createCancelReason.mutate(data);
+    }
+
     const handleSearchChange = useCallback(
         debounce((value: string) => {
             setSearch(value);
@@ -158,14 +172,6 @@ const Page = () => {
         }, 500),
         []
     );
-
-    // if (isLoading) {
-    //     return (
-    //         <div>
-    //             <Loading></Loading>
-    //         </div>
-    //     );
-    // }
 
     return (
         <div>
@@ -185,7 +191,7 @@ const Page = () => {
 
             <div className="panel mt-6">
                 <div className="mb-4.5 flex flex-col justify-end gap-5 md:flex-row md:items-center">
-                    <Dialog>
+                    <Dialog open={open} onOpenChange={setOpen}>
                         <DialogTrigger asChild>
                             <Button variant={'outline'}>
                                 <IoAddCircleOutline className="mr-2" />
@@ -197,87 +203,33 @@ const Page = () => {
                                 <DialogTitle>Add new cancel reason</DialogTitle>
                                 <DialogDescription> Click save when you're done.</DialogDescription>
                             </DialogHeader>
-                            <div className="grid gap-4 py-4">
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="name" className="text-right">
-                                        Username
-                                    </Label>
-                                    <Input value={userName} onChange={(e: { target: { value: SetStateAction<string> } }) => setUserName(e.target.value)} id="name" className="col-span-3" />
-                                </div>
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="Password" className="text-right">
-                                        Password
-                                    </Label>
-                                    <Input
-                                        value={password}
-                                        onChange={(e: { target: { value: SetStateAction<string> } }) => setPassword(e.target.value)}
-                                        id="Password"
-                                        type="password"
-                                        className="col-span-3"
+                            <Form {...form}>
+                                <form onSubmit={form.handleSubmit(addCancelReason)} className="space-y-6">
+                                    <FormField
+                                        control={form.control}
+                                        name="content"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Content</FormLabel>
+                                                <FormControl>
+                                                    <Input {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
                                     />
-                                </div>
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="Email" className="text-right">
-                                        Email
-                                    </Label>
-                                    <Input value={email} onChange={(e: { target: { value: SetStateAction<string> } }) => setEmail(e.target.value)} id="Email" className="col-span-3" />
-                                </div>
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="Phone" className="text-right">
-                                        Phone
-                                    </Label>
-                                    <Input value={phone} onChange={(e: { target: { value: SetStateAction<string> } }) => setPhone(e.target.value)} id="Phone" className="col-span-3" />
-                                </div>
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="Address" className="text-right">
-                                        Address
-                                    </Label>
-                                    <Input
-                                        value={address}
-                                        onChange={(e: { target: { value: SetStateAction<string> } }) => {
-                                            setAddress(e.target.value);
-                                        }}
-                                        id="Address"
-                                        className="col-span-3"
-                                    />
-                                </div>
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="Image" className="text-right">
-                                        Image
-                                    </Label>
-                                    <input
-                                        onChange={(e) => {
-                                            if (e?.target.files === null) return;
-                                            const fileUpload = e?.target.files[0];
-                                            setImage(fileUpload);
-                                        }}
-                                        id="Image"
-                                        type="file"
-                                        className="col-span-3"
-                                    />
-                                </div>
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="Image" className="text-right">
-                                        Role
-                                    </Label>
-
-                                    <Select defaultValue="1" onValueChange={(e) => setRole(String(e))}>
-                                        <SelectTrigger className="col-span-3">
-                                            <SelectValue placeholder="Select Role" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="1">Admin</SelectItem>
-                                            <SelectItem value="1002">Shipper</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
-                            <DialogFooter>
-                                <DialogClose>
-                                    <Button variant={'link'}>Cancel</Button>
-                                </DialogClose>
-                                <Button>Save changes</Button>
-                            </DialogFooter>
+                                    <DialogFooter>
+                                        <DialogClose>
+                                            <Button type="button" variant={'link'} className="rounded-md">
+                                                Cancel
+                                            </Button>
+                                        </DialogClose>
+                                        <Button type="submit" disabled={createCancelReason.isPending} className="rounded-md">
+                                            {createCancelReason.isPending ? 'Loading...' : 'Create'}
+                                        </Button>
+                                    </DialogFooter>
+                                </form>
+                            </Form>
                         </DialogContent>
                     </Dialog>
                 </div>
