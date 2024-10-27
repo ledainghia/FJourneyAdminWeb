@@ -17,7 +17,7 @@ export const authAPI = {
 
 export const userAPI = {
     getUser: async () => {
-        return await axios.get(`${baseUrl}/api/auth/user-info`);
+        return await axiosInstance.get(`${baseUrl}/api/auth/user-info`);
     },
     updateDeviceToken: async (token: string) => {
         return await axiosInstance.put(`/api/user/update/deviceid/${token}`);

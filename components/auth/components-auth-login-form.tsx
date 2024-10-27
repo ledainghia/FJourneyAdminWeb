@@ -14,12 +14,13 @@ import { Bounce, toast } from 'react-toastify';
 import { Button } from '../ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
 import { Input } from '../ui/input';
+import { useMutation } from '@tanstack/react-query';
 
 const FormSchema = z.object({
-    username: z.string().min(2, {
+    email: z.string().min(2, {
         message: 'Username must be at least 2 characters.',
     }),
-    password: z.string().min(5, {
+    password: z.string().min(1, {
         message: 'Password must be at least 6 characters.',
     }),
     remember: z.string(),
@@ -28,7 +29,7 @@ const FormSchema = z.object({
 const ComponentsAuthLoginForm = () => {
     const router = useRouter();
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-    const [logginLoading, setLogginLoading] = useState(false);
+
     const [remember, setRemember] = useState(false);
     const togglePasswordVisibility = () => {
         setIsPasswordVisible(!isPasswordVisible);
@@ -37,10 +38,26 @@ const ComponentsAuthLoginForm = () => {
     const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setRemember(event.target.checked);
     };
+
+    const loginAction = useMutation({
+        mutationFn: (data: userLogin) => authAPI.login(data),
+        onSuccess: (data) => {
+            toast.success('Login successfully.');
+            if (remember) {
+                localStorage.setItem('user', JSON.stringify(data.data.result));
+            } else {
+                sessionStorage.setItem('user', JSON.stringify(data.data.result));
+            }
+            router.push('/');
+        },
+        onError: (error) => {
+            toast.error(error.message || 'An error occurred.');
+        },
+    });
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
         defaultValues: {
-            username: '',
+            email: '',
             password: '',
             remember: 'false',
         },
@@ -48,52 +65,11 @@ const ComponentsAuthLoginForm = () => {
 
     function onSubmit(data: z.infer<typeof FormSchema>) {
         const user: userLogin = {
-            username: data.username,
+            email: data.email,
             password: data.password,
+            role: 'admin',
         };
-        setLogginLoading(true);
-        authAPI
-            .login(user)
-            .then((res) => {
-                console.log(res);
-                if (res.status === 200) {
-                    toast.success('Login success', {
-                        position: 'top-right',
-                        autoClose: 5000,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        pauseOnHover: true,
-                        draggable: true,
-                        progress: undefined,
-                        theme: 'light',
-                        transition: Bounce,
-                    });
-
-                    if (remember) {
-                        localStorage.setItem('user', JSON.stringify(res.data.result));
-                    } else {
-                        sessionStorage.setItem('user', JSON.stringify(res.data.result));
-                    }
-                    router.push('/');
-                }
-            })
-            .catch((err) => {
-                console.log(err);
-                toast.error(err.response.data.result.message, {
-                    position: 'top-right',
-                    autoClose: 5000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    progress: undefined,
-                    theme: 'light',
-                    transition: Bounce,
-                });
-            })
-            .finally(() => {
-                setLogginLoading(false);
-            });
+        loginAction.mutate(user);
     }
 
     return (
@@ -101,13 +77,13 @@ const ComponentsAuthLoginForm = () => {
             <form className="space-y-5 dark:text-white" onSubmit={form.handleSubmit(onSubmit)}>
                 <FormField
                     control={form.control}
-                    name="username"
+                    name="email"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Username</FormLabel>
+                            <FormLabel>Email</FormLabel>
                             <FormControl>
                                 <div className="relative">
-                                    <Input placeholder="Username" {...field} />
+                                    <Input placeholder="Email" {...field} />
                                     <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 ">
                                         <IconMail fill={true} />
                                     </div>
@@ -145,11 +121,11 @@ const ComponentsAuthLoginForm = () => {
                     </label>
                 </div>
                 <Button
-                    disabled={logginLoading}
+                    disabled={loginAction.isPending}
                     type="submit"
                     className="btn !mt-6 w-full border-0 bg-gradient-to-r from-primary to-secondary uppercase text-white shadow-[0_10px_20px_-10px_rgba(67,97,238,0.44)]"
                 >
-                    {logginLoading ? (
+                    {loginAction.isPending ? (
                         <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             Please wait

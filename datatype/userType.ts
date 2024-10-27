@@ -1,6 +1,8 @@
 export type userLogin = {
-    username: string;
+    idToken?: string;
+    email: string;
     password: string;
+    role: string;
 };
 
 export interface token {

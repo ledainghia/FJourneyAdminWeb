@@ -10,8 +10,8 @@ export const metadata: Metadata = {
 const CoverLogin = () => {
     return (
         <div className="relative flex max-h-screen items-center justify-center  bg-cover bg-center bg-no-repeat  dark:bg-[#060818]">
-            <div className="relative flex h-[100vh]  w-full flex-col justify-between overflow-hidden rounded-md bg-white/60  backdrop-blur-lg dark:bg-black/50 lg:flex-row lg:gap-10 xl:gap-0">
-                <div className="relative hidden w-full items-center justify-center bg-gradient-to-r from-primary to-secondary p-5 lg:inline-flex lg:max-w-[835px] xl:-ms-28 ltr:xl:skew-x-[14deg] rtl:xl:skew-x-[-14deg]">
+            <div className="relative flex h-[100vh]  w-full grid-cols-2 flex-col justify-between overflow-hidden rounded-md bg-white/60  backdrop-blur-lg dark:bg-black/50 lg:flex-row lg:gap-5 xl:gap-0">
+                <div className="relative hidden w-full items-center justify-center bg-gradient-to-r from-primary to-secondary p-5 lg:inline-flex  xl:-ms-28 ltr:xl:skew-x-[14deg] rtl:xl:skew-x-[-14deg]">
                     <div className="absolute inset-y-0 w-8 from-primary/10 via-transparent to-transparent xl:w-16 ltr:-right-10 ltr:bg-gradient-to-r ltr:xl:-right-20 rtl:-left-10 rtl:bg-gradient-to-l rtl:xl:-left-20"></div>
                     <div className="ltr:xl:-skew-x-[14deg] rtl:xl:skew-x-[14deg]">
                         <Link href="/" className="ms-10 block w-48 lg:w-72">
@@ -22,7 +22,7 @@ const CoverLogin = () => {
                         </div>
                     </div>
                 </div>
-                <div className="relative flex w-full flex-col items-center justify-center gap-6 px-4 pb-16 pt-6 sm:px-6 lg:max-w-[667px]">
+                <div className="relative flex w-full flex-col items-center justify-center gap-6 px-4 pb-16 pt-6 sm:px-6 ">
                     <div className="flex w-full max-w-[440px] items-center gap-2 lg:absolute lg:end-6 lg:top-6 lg:max-w-full">
                         <Link href="/" className="block w-8 lg:hidden">
                             <img src="/assets/images/logoDARK.svg" alt="Logo" className="mx-auto w-10" />

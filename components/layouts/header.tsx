@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Link from 'next/link';
 import { IRootState } from '@/store';
@@ -40,40 +40,22 @@ import { UserInformation } from '@/datatype/userType';
 import { set } from 'lodash';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { FaCalendarWeek } from 'react-icons/fa6';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 
 const Header = () => {
-    // if (!getUser()) redirect('/auth/login');
+    if (!getUser()) redirect('/auth/login');
 
     const pathname = usePathname();
     const dispatch = useDispatch();
     const router = useRouter();
     const { t, i18n } = getTranslation();
     const isDarkMode = useSelector((state: IRootState) => state.themeConfig.isDarkMode);
-    const [updateUserInformation, setUpdateUserInformation] = useState(true);
-    const [userInformation, setUserInformation] = useState<UserInformation>();
-    const getUserInformation = async () => {
-        const response = await userAPI.getUser();
-        if (response.data.success) {
-            const userInfo: UserInformation = response.data.result.user;
-            setUserInformation(userInfo);
-            setUpdateUserInformation(false);
-        }
-    };
 
-    const { data, error } = useQuery({
-        queryKey: ['notifications'],
-        queryFn: () => userAPI.getNotifications(),
-        enabled: !!userInformation,
-    });
-
-    if (data && !error) {
-        console.log(data);
-    }
-
-    useEffect(() => {
-        if (updateUserInformation) getUserInformation();
-    }, [updateUserInformation]);
+    // const { data, error } = useQuery({
+    //     queryKey: ['notifications'],
+    //     queryFn: () => userAPI.getNotifications(),
+    //     enabled: !!userInformation,
+    // });
 
     useEffect(() => {
         const selector = document.querySelector('ul.horizontal-menu a[href="' + window.location.pathname + '"]');
@@ -464,8 +446,8 @@ const Header = () => {
                                 btnClassName="relative group block"
                                 button={
                                     <Avatar>
-                                        <AvatarImage src={userInformation?.image} alt={userInformation?.userName} />
-                                        <AvatarFallback>{userInformation?.userName}</AvatarFallback>
+                                        <AvatarImage src="https://www.creativefabrica.com/wp-content/uploads/2022/10/25/Support-Admin-icon-Graphics-43209390-1.jpg" alt={'admin'} />
+                                        <AvatarFallback>{'ADMIN'}</AvatarFallback>
                                     </Avatar>
                                 }
                             >
@@ -473,32 +455,15 @@ const Header = () => {
                                     <li>
                                         <div className="flex items-center px-4 py-4">
                                             <Avatar className="h-10 w-10 rounded-md object-cover">
-                                                <AvatarImage src={userInformation?.image} alt={userInformation?.userName} />
-                                                <AvatarFallback>{userInformation?.userName}</AvatarFallback>
+                                                <AvatarImage src="https://www.creativefabrica.com/wp-content/uploads/2022/10/25/Support-Admin-icon-Graphics-43209390-1.jpg" alt={'admin'} />
+                                                <AvatarFallback>ADMIN</AvatarFallback>
                                             </Avatar>
                                             <div className="truncate ltr:pl-4 rtl:pr-4">
-                                                <h4 className="text-base">
-                                                    {userInformation?.userName}
-                                                    <span className="rounded bg-success-light px-1 text-xs text-success ltr:ml-2 rtl:ml-2">ADMIN</span>
-                                                </h4>
-                                                <button type="button" className="text-black/60 hover:text-primary dark:text-dark-light/60 dark:hover:text-white">
-                                                    {userInformation?.email}
-                                                </button>
+                                                <h4 className="text-base">ADMIN</h4>
                                             </div>
                                         </div>
                                     </li>
-                                    <li>
-                                        <Link href="/users/profile" className="dark:hover:text-white">
-                                            <IconUser className="h-4.5 w-4.5 shrink-0 ltr:mr-2 rtl:ml-2" />
-                                            Profile
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link href="/apps/mailbox" className="dark:hover:text-white">
-                                            <IconMail className="h-4.5 w-4.5 shrink-0 ltr:mr-2 rtl:ml-2" />
-                                            Inbox
-                                        </Link>
-                                    </li>
+
                                     <li>
                                         <Link href="/auth/boxed-lockscreen" className="dark:hover:text-white">
                                             <IconLockDots className="h-4.5 w-4.5 shrink-0 ltr:mr-2 rtl:ml-2" />
