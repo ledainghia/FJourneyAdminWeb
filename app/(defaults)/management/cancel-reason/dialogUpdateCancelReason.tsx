@@ -1,18 +1,17 @@
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { Input } from '@/components/ui/input';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { FaRegEdit } from 'react-icons/fa';
-import { CancellationReasons } from '@/datatype/cancellationReasons';
 import { managementAPI } from '@/config/axios/axios';
-import { toast } from 'react-toastify';
-import { set } from 'lodash';
+import { CancellationReasons } from '@/datatype/cancellationReasons';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { FaRegEdit } from 'react-icons/fa';
+import { toast } from 'react-toastify';
+import { z } from 'zod';
 
 const FormSchema = z.object({
     reasonId: z.string().optional(),
@@ -44,7 +43,7 @@ const UpdateCancelReasonDialog: React.FC<UpdateCancelReasonDialogProps> = ({ rea
             queryClient.invalidateQueries({ queryKey: ['CancelReasons'] });
         },
         onSuccess: (_, variables) => {
-            const { reasonId } = variables; // Lấy reasonId từ variables
+            const { reasonId } = variables;
             if (reasonId !== undefined) {
                 toast.success('Update cancel reason successfully.');
             }
