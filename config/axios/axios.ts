@@ -6,6 +6,7 @@ import { Product } from '@/datatype/productType';
 import { add, update } from 'lodash';
 import { ZonePrices } from '@/datatype/zoneType';
 import { CancellationReasons } from '@/datatype/cancellationReasons';
+import { getMonth, getYear } from 'date-fns';
 
 const baseUrl = 'https://api.fjourney.site';
 
@@ -90,6 +91,17 @@ export const managementAPI = {
     },
     deleteCancelReason: async (reasonId: string) => {
         return await axios.delete(`${baseUrl}/api/cancellationreasons/${reasonId}`);
+    },
+
+    getDataDashboard: async () => {
+        return await axios.get(`${baseUrl}/api/dashboard`);
+    },
+    getStatistics: async () => {
+        const today = new Date();
+        const month = getMonth(today) + 1; // getMonth trả về giá trị từ 0 - 11, nên cần +1 để lấy đúng tháng hiện tại
+        const year = getYear(today);
+
+        return await axios.get(`${baseUrl}/api/dashboard/weekly-statistics?month=${month}&year=${year}`);
     },
 
     changeStatusUser: async (id: string, status: string) => {

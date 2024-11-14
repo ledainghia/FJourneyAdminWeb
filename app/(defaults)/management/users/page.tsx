@@ -5,11 +5,12 @@ import { Badge } from '@/components/ui/badge';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { managementAPI } from '@/config/axios/axios';
 import { cn } from '@/lib/utils';
-import { Input } from '@mantine/core';
-import { Label } from '@radix-ui/react-label';
+
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { DataTableColumn } from 'mantine-datatable';
 import { SetStateAction, useEffect, useState } from 'react';

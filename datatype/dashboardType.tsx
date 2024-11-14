@@ -1,0 +1,20 @@
+export type TripStatistics = {
+    totalUsers: number;
+    totalDrivers: number;
+    totalPassengers: number;
+    newUsersThisMonth: number;
+    totalTripRequests: number;
+    completedTrips: number;
+    cancelTrips: number;
+    pendingTrips: number;
+    completionRate: number;
+    totalTripMatches: number;
+    pendingTripMatches: number;
+    acceptedTripMatches: number;
+    rejectedTripMatches: number;
+    canceledTripMatches: number;
+    inProgressTripMatches: number;
+    completedTripMatches: number;
+    totalTransactionAmount: number;
+    totalZones: number;
+};
