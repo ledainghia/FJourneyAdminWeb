@@ -29,62 +29,67 @@ export const classNamesForIconSidebar: string = 'shrink-0 group-hover:!text-prim
 // Define the sidebar item data
 export const sidebarItemData: sidebarItem[] = [
     {
-        title: 'Dashboard',
+        title: 'Bảng điều khiển',
         isHeader: false,
         path: '/',
     },
     {
-        title: 'Management',
+        title: 'Quản lý',
         isHeader: true,
         subMenu: [
             {
-                title: 'Users',
+                title: 'Người dùng',
                 icon: <IconMenuUsers className={classNamesForIconSidebar} />,
                 subMenu: [
                     {
-                        title: 'User List',
+                        title: 'Danh sách người dùng',
                         path: '/management/users',
                     },
                     {
-                        title: 'Verify Driver',
+                        title: 'Xác minh tài xế',
                         path: '/management/users/driverVerify',
                     },
                 ],
             },
             {
-                title: 'Trip requests',
+                title: 'Danh sách thanh toán',
+                icon: <BsCollectionFill className={classNamesForIconSidebar} />,
+                path: '/management/payments',
+            },
+            {
+                title: 'Yêu cầu chuyến đi',
                 icon: <BiTrip className={classNamesForIconSidebar} />,
                 path: '/management/trip-requests',
             },
             {
-                title: 'Zones',
+                title: 'Khu vực',
                 icon: <MdMyLocation className={classNamesForIconSidebar} />,
                 path: '/management/zones',
             },
 
             {
-                title: 'Cancel Reason',
+                title: 'Lý do hủy',
                 icon: <TbAdjustmentsCancel className={classNamesForIconSidebar} />,
                 path: '/management/cancel-reason',
             },
         ],
     },
     {
-        title: 'Profile',
+        title: 'Hồ sơ',
         isHeader: true,
         subMenu: [
             {
-                title: 'Change Password',
+                title: 'Đổi mật khẩu',
                 icon: <RiLockPasswordFill className={classNamesForIconSidebar} />,
                 path: '/profile/change-password',
             },
             {
-                title: 'Profile Detail',
+                title: 'Chi tiết hồ sơ',
                 icon: <ImProfile className={classNamesForIconSidebar} />,
                 path: '/profile/profile-detail',
             },
             {
-                title: 'Profile Setting',
+                title: 'Cài đặt hồ sơ',
                 icon: <FaUserGear className={classNamesForIconSidebar} />,
                 path: '/profile/profile-setting',
             },

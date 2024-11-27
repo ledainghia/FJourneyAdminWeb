@@ -1,4 +1,5 @@
 'use client';
+
 import { DonutChart } from '@/components/dashboard/donutChart';
 import { capitalizeFirstLetter, LineChartCom } from '@/components/dashboard/lineChart';
 import { ChartConfig } from '@/components/ui/chart';

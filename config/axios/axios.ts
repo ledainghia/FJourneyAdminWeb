@@ -103,6 +103,9 @@ export const managementAPI = {
 
         return await axios.get(`${baseUrl}/api/dashboard/weekly-statistics?month=${month}&year=${year}`);
     },
+    getPayments: async ({ page, pageSize, search }: pagination) => {
+        return await axios.get(`${baseUrl}/api/payments?Page=${page}&PageSize=${pageSize}${search ? `&keySearch=${search}` : ''}&sortBy=PaidAt&isAscending=false`);
+    },
 
     changeStatusUser: async (id: string, status: string) => {
         return await axiosInstance.put(`/api/user/status`, {
